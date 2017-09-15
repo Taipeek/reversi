@@ -15,19 +15,70 @@ var state = {
         [null, null, null, null, null, null, null, null]
     ],
     lastMousePosition: {x: -1, y: -1},
-    possibleMove: null
+    scoreWhite: 2,
+    scoreBlack: 2
 };
-var ctx;
+var ctx, scoreBoard;
 
 
 /** @function checkForVictory
  * Checks to see if a victory has been actived
  * (All peices of one color have been captured)
- * @return {String} one of three values:
+ * @return {boolean} one of three values:
  * "White wins", "Black wins", or null, if neither
  * has yet won.
  */
 function checkForVictory() {
+    var victory = true;
+    var white = 0, black = 0;
+    for (var y = 0; y < 8; y++) {
+        for (var x = 0; x < 8; x++) {
+            if (state.board[y][x] == "w") {
+                white++;
+                continue;
+            }
+            if (state.board[y][x] == "b") {
+                black++;
+                continue;
+            }
+            if (getMove(x, y).length > 0) victory = false;
+        }
+    }
+    state.scoreBlack = black;
+    state.scoreWhite = white;
+    updateScoreBoard();
+    renderBoard();
+    setTimeout(function () {
+        if (victory) {
+            if (white > black)
+                alert("White wins " + white + " to " + black + " !!!");
+            if (white < black)
+                alert("Black wins " + black + " to " + white + " !!!");
+            if (white == black)
+                alert("It a draw!!!");
+            state = {
+                over: false,
+                turn: 'b',
+                board: [
+                    [null, null, null, null, null, null, null, null],
+                    [null, null, null, null, null, null, null, null],
+                    [null, null, null, null, null, null, null, null],
+                    [null, null, null, "w", "b", null, null, null],
+                    [null, null, null, "b", "w", null, null, null],
+                    [null, null, null, null, null, null, null, null],
+                    [null, null, null, null, null, null, null, null],
+                    [null, null, null, null, null, null, null, null]
+                ],
+                lastMousePosition: {x: -1, y: -1},
+                scoreWhite: 2,
+                scoreBlack: 2
+            };
+            updateScoreBoard();
+            renderBoard();
+        }
+    }, 100);
+
+    return victory;
 
 }
 
@@ -258,7 +309,10 @@ function getPathCords(x, y, dir, length) {
 
 /** @function ApplyMove
  * A function to apply the selected move to the game
- * @param {object} move - the move to apply.
+ * @param x
+ * @param y
+ * @param dir
+ * @param length
  */
 function applyMove(x, y, dir, length) {
     var path = getPathCords(x, y, dir, length);
@@ -266,16 +320,24 @@ function applyMove(x, y, dir, length) {
     for (var i = 0; i < path.length; i++) {
         state.board[path[i].y][path[i].x] = state.turn;
     }
-    return renderBoard() | nextTurn();
+    return renderBoard() | nextTurn() | checkForVictory();
 }
+
+function updateScoreBoard() {
+    scoreBoard.innerHTML = "<br>Turn: " + (state.turn == "w" ? "white" : "black") + "<br>Black score: " + state.scoreBlack + "<br>White score: " + state.scoreWhite;
+}
+
 function setup() {
     var canvas = document.createElement("canvas");
+    scoreBoard = document.createElement("div");
     canvas.width = 800;
     canvas.height = 800;
     document.body.appendChild(canvas);
+    document.body.appendChild(scoreBoard);
     ctx = canvas.getContext("2d");
     canvas.onmousemove = handleHover;
     canvas.onclick = handleClick;
     renderBoard();
+    updateScoreBoard();
 }
 setup();
