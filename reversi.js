@@ -14,11 +14,10 @@ var state = {
         [null, null, null, null, null, null, null, null],
         [null, null, null, null, null, null, null, null]
     ],
-    lastMousePosition: {x: -1, y: -1}
+    lastMousePosition: {x: -1, y: -1},
+    possibleMove: null
 };
 var ctx;
-
-
 
 
 /** @function checkForVictory
@@ -81,42 +80,42 @@ function checkDirection(x, y, dir) {
     var ret, nx, ny;
     switch (dir) {
         case 0:
-            for (ny = y-1, nx = x; ny > -1; ny--) {
+            for (ny = y - 1, nx = x; ny > -1; ny--) {
                 if ((ret = checkPath()) != undefined) return ret;
             }
             break;
         case 1:
-            for (ny = y-1, nx = x+1; ny > -1 && nx < 8; ny--, nx++) {
+            for (ny = y - 1, nx = x + 1; ny > -1 && nx < 8; ny--, nx++) {
                 if ((ret = checkPath()) != undefined) return ret;
             }
             break;
         case 2:
-            for (ny = y, nx = x+1; ny > -1 && nx < 8; nx++) {
+            for (ny = y, nx = x + 1; ny > -1 && nx < 8; nx++) {
                 if ((ret = checkPath()) != undefined) return ret;
             }
             break;
         case 3:
-            for (ny = y+1, nx = x+1; ny < 8 && nx < 8; ny++, nx++) {
+            for (ny = y + 1, nx = x + 1; ny < 8 && nx < 8; ny++, nx++) {
                 if ((ret = checkPath()) != undefined) return ret;
             }
             break;
         case 4:
-            for (ny = y+1, nx = x; ny < 8 && nx < 8; ny++) {
+            for (ny = y + 1, nx = x; ny < 8 && nx < 8; ny++) {
                 if ((ret = checkPath()) != undefined) return ret;
             }
             break;
         case 5:
-            for (ny = y+1, nx = x-1; ny < 8 && nx > -1; ny++, nx--) {
+            for (ny = y + 1, nx = x - 1; ny < 8 && nx > -1; ny++, nx--) {
                 if ((ret = checkPath()) != undefined) return ret;
             }
             break;
         case 6:
-            for (ny = y, nx = x-1; ny < 8 && nx > -1; nx--) {
+            for (ny = y, nx = x - 1; ny < 8 && nx > -1; nx--) {
                 if ((ret = checkPath()) != undefined) return ret;
             }
             break;
         case 7:
-            for (ny = y-1, nx = x-1; ny > -1 && nx > -1; ny--, nx--) {
+            for (ny = y - 1, nx = x - 1; ny > -1 && nx > -1; ny--, nx--) {
                 if ((ret = checkPath()) != undefined) return ret;
             }
             break;
@@ -147,7 +146,7 @@ function handleHover(event) {
     renderBoard();
     if (!state.board[y][x]) {
         var move = getMove(x, y);
-        if (move.length <1) return renderBoard();
+        if (move.length < 1) return renderBoard();
         renderBoard();
         renderMove(x, y, move.dir, move.length);
     }
@@ -156,7 +155,15 @@ function handleHover(event) {
 
 
 function handleClick(event) {
-    console.log(event);
+    var x = state.lastMousePosition.x;
+    var y = state.lastMousePosition.y;
+    renderBoard();
+    if (!state.board[y][x]) {
+        var move = getMove(x, y);
+        if (move.length < 1) return renderBoard();
+        applyMove(x, y, move.dir, move.length);
+        renderBoard();
+    }
 }
 
 function renderBoard() {
@@ -194,102 +201,73 @@ function drawSquarePath(x, y) {
 }
 
 function renderMove(x, y, dir, length) {
-    var lengthLimit = -2,nx,ny;
+    var path = getPathCords(x, y, dir, length);
+    path.forEach(function (square) {
+        drawSquarePath(square.x, square.y);
+    })
+}
+
+function getPathCords(x, y, dir, length) {
+    var path = [];
+    var lengthLimit = -2, nx, ny;
+
     switch (dir) {
         case 0:
-            for ( ny = y, nx = x; lengthLimit < length && (ny > -1); ny--, lengthLimit++) {
-                drawSquarePath(nx, ny)
+            for (ny = y, nx = x; lengthLimit < length && (ny > -1); ny--, lengthLimit++) {
+                path.push({x: nx, y: ny});
             }
             break;
         case 1:
-            for ( ny = y, nx = x; lengthLimit < length && (ny > -1 || nx < 8); ny--, nx++, lengthLimit++) {
-                drawSquarePath(nx, ny)
+            for (ny = y, nx = x; lengthLimit < length && (ny > -1 || nx < 8); ny--, nx++, lengthLimit++) {
+                path.push({x: nx, y: ny});
             }
             break;
         case 2:
-            for ( ny = y, nx = x; lengthLimit < length && (ny > -1 || nx < 8); nx++, lengthLimit++) {
-                drawSquarePath(nx, ny)
+            for (ny = y, nx = x; lengthLimit < length && (ny > -1 || nx < 8); nx++, lengthLimit++) {
+                path.push({x: nx, y: ny});
             }
             break;
         case 3:
-            for ( ny = y, nx = x; lengthLimit < length && (ny < 8 || nx < 8); ny++, nx++, lengthLimit++) {
-                drawSquarePath(nx, ny)
+            for (ny = y, nx = x; lengthLimit < length && (ny < 8 || nx < 8); ny++, nx++, lengthLimit++) {
+                path.push({x: nx, y: ny});
             }
             break;
         case 4:
-            for ( ny = y, nx = x; lengthLimit < length && (ny < 8 || nx < 8); ny++, lengthLimit++) {
-                drawSquarePath(nx, ny)
+            for (ny = y, nx = x; lengthLimit < length && (ny < 8 || nx < 8); ny++, lengthLimit++) {
+                path.push({x: nx, y: ny});
             }
             break;
         case 5:
-            for ( ny = y, nx = x; lengthLimit < length && (ny < 8 || nx > -1); ny++, nx--, lengthLimit++) {
-                drawSquarePath(nx, ny)
+            for (ny = y, nx = x; lengthLimit < length && (ny < 8 || nx > -1); ny++, nx--, lengthLimit++) {
+                path.push({x: nx, y: ny});
             }
             break;
         case 6:
-            for ( ny = y, nx = x; lengthLimit < length && (ny < 8 || nx > -1); nx--, lengthLimit++) {
-                drawSquarePath(nx, ny)
+            for (ny = y, nx = x; lengthLimit < length && (ny < 8 || nx > -1); nx--, lengthLimit++) {
+                path.push({x: nx, y: ny});
             }
             break;
         case 7:
-            for ( ny = y, nx = x; lengthLimit < length && (ny > -1 || nx > -1); ny--, nx--, lengthLimit++) {
-                drawSquarePath(nx, ny)
+            for (ny = y, nx = x; lengthLimit < length && (ny > -1 || nx > -1); ny--, nx--, lengthLimit++) {
+                path.push({x: nx, y: ny});
             }
             break;
     }
+    return path;
 }
-
 
 /** @function ApplyMove
  * A function to apply the selected move to the game
  * @param {object} move - the move to apply.
  */
 function applyMove(x, y, dir, length) {
-    var lengthLimit = -2,nx,ny;
-
-    switch (dir) {
-        case 0:
-            for ( ny = y, nx = x; lengthLimit < length && (ny > -1); ny--, lengthLimit++) {
-                drawSquarePath(nx, ny)
-            }
-            break;
-        case 1:
-            for ( ny = y, nx = x; lengthLimit < length && (ny > -1 || nx < 8); ny--, nx++, lengthLimit++) {
-                drawSquarePath(nx, ny)
-            }
-            break;
-        case 2:
-            for ( ny = y, nx = x; lengthLimit < length && (ny > -1 || nx < 8); nx++, lengthLimit++) {
-                drawSquarePath(nx, ny)
-            }
-            break;
-        case 3:
-            for ( ny = y, nx = x; lengthLimit < length && (ny < 8 || nx < 8); ny++, nx++, lengthLimit++) {
-                drawSquarePath(nx, ny)
-            }
-            break;
-        case 4:
-            for ( ny = y, nx = x; lengthLimit < length && (ny < 8 || nx < 8); ny++, lengthLimit++) {
-                drawSquarePath(nx, ny)
-            }
-            break;
-        case 5:
-            for ( ny = y, nx = x; lengthLimit < length && (ny < 8 || nx > -1); ny++, nx--, lengthLimit++) {
-                drawSquarePath(nx, ny)
-            }
-            break;
-        case 6:
-            for ( ny = y, nx = x; lengthLimit < length && (ny < 8 || nx > -1); nx--, lengthLimit++) {
-                drawSquarePath(nx, ny)
-            }
-            break;
-        case 7:
-            for ( ny = y, nx = x; lengthLimit < length && (ny > -1 || nx > -1); ny--, nx--, lengthLimit++) {
-                drawSquarePath(nx, ny)
-            }
-            break;
+    var path = getPathCords(x, y, dir, length);
+    if (path.length == 0) return;
+    for (var i = 0; i < path.length; i++) {
+        state.board[path[i].y][path[i].x] = state.turn;
+    }
+    return renderBoard() | nextTurn();
 }
-
 function setup() {
     var canvas = document.createElement("canvas");
     canvas.width = 800;
