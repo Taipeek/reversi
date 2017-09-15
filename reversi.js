@@ -58,17 +58,30 @@ function getOpponent() {
 }
 
 /**
- *
+ * Funtion to check if placing stone on x y is OK
  * @param x mouse x
  * @param y mouse y
  * @param dir 0 is top then +1 clockwise
  */
 function checkDirection(x, y, dir) {
-    var path = null;
+    var op = getOpponent();
+    var pl = state.turn;
+    var pathLength = 0;
+    var foundOpponent = false;
     switch (dir){
         case 0:
-            for(var ny = x;ny > -1;ny--){
-
+            for(var ny = y;ny > -1;ny--){
+                if(foundOpponent){
+                    if(!state.board[ny][x]) return 0;
+                    if(state.board[ny][x] == op) pathLength++;
+                    if(state.board[ny][x] == pl) return pathLength;
+                }else{
+                    if(!state.board[ny][x]) return 0;
+                    if(state.board[ny][x] == op){
+                        foundOpponent = true;
+                        pathLength++;
+                    }
+                }
             }
         case 1:
         case 2:
