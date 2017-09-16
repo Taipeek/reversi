@@ -120,7 +120,7 @@ function checkDirection(x, y, dir) {
             if (state.board[ny][nx] == op) pathLength++;
             if (state.board[ny][nx] == pl) return pathLength;
         } else {
-            if (!state.board[ny][nx]) return 0;
+            if (!state.board[ny][nx] || state.board[ny][nx] == pl) return 0;
             if (state.board[ny][nx] == op) {
                 foundOpponent = true;
                 pathLength++;
@@ -192,9 +192,11 @@ function handleHover(event) {
     var x = Math.floor(event.clientX / 100);
     var y = Math.floor(event.clientY / 100);
     if (state.lastMousePosition.x == x && state.lastMousePosition.y == y) return;
+    if (x < 0 || y < 0 || y > 7 || x > 7) return;
     state.lastMousePosition.x = x;
     state.lastMousePosition.y = y;
     renderBoard();
+    console.log(x, y);
     if (!state.board[y][x]) {
         var move = getMove(x, y);
         if (move.length < 1) return renderBoard();
