@@ -41,7 +41,7 @@ function checkForVictory() {
                 black++;
                 continue;
             }
-            if (getMove(x, y).length > 0) victory = false;
+            if (getMoves(x, y).length > 0) victory = false;
         }
     }
     state.scoreBlack = black;
@@ -175,15 +175,15 @@ function checkDirection(x, y, dir) {
 
 }
 
-function getMove(x, y) {
-    var path = {dir: -1, length: -1};
+function getMoves(x, y) {
+    var paths = [];
     for (var i = 0; i < 8; i++) {
         var dirPath = checkDirection(x, y, i);
-        if (dirPath > path.length) {
-            path = {dir: i, length: dirPath};
+        if (dirPath > 0) {
+            paths.push({dir: i, length: dirPath});
         }
     }
-    return path;
+    return paths;
 }
 
 
@@ -196,12 +196,13 @@ function handleHover(event) {
     state.lastMousePosition.x = x;
     state.lastMousePosition.y = y;
     renderBoard();
-    console.log(x, y);
     if (!state.board[y][x]) {
-        var move = getMove(x, y);
-        if (move.length < 1) return renderBoard();
+        var moves = getMoves(x, y);
+        if (moves.length == 0) return renderBoard();
         renderBoard();
-        renderMove(x, y, move.dir, move.length);
+        moves.forEach(function (move) {
+            renderMove(x, y, move.dir, move.length);
+        });
     }
 
 }
@@ -212,9 +213,13 @@ function handleClick(event) {
     var y = state.lastMousePosition.y;
     renderBoard();
     if (!state.board[y][x]) {
-        var move = getMove(x, y);
-        if (move.length < 1) return renderBoard();
-        applyMove(x, y, move.dir, move.length);
+        var moves = getMoves(x, y);
+        if (moves.length == 0) return renderBoard();
+        moves.forEach(function (move) {
+            applyMove(x, y, move.dir, move.length);
+        });
+        nextTurn();
+        checkForVictory();
         renderBoard();
     }
 }
@@ -322,7 +327,7 @@ function applyMove(x, y, dir, length) {
     for (var i = 0; i < path.length; i++) {
         state.board[path[i].y][path[i].x] = state.turn;
     }
-    return renderBoard() | nextTurn() | checkForVictory();
+    return renderBoard();
 }
 
 function updateScoreBoard() {
