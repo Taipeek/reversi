@@ -21,15 +21,15 @@ var state = {
 var ctx, scoreBoard;
 
 
-/** @function checkForVictory
+/** @function checkForEnd
  * Checks to see if a victory has been actived
  * (All peices of one color have been captured)
  * @return {boolean} one of three values:
  * "White wins", "Black wins", or null, if neither
  * has yet won.
  */
-function checkForVictory() {
-    var victory = true;
+function checkForEnd(checkNext) {
+    var end = true;
     var white = 0, black = 0;
     for (var y = 0; y < 8; y++) {
         for (var x = 0; x < 8; x++) {
@@ -41,44 +41,45 @@ function checkForVictory() {
                 black++;
                 continue;
             }
-            if (getMoves(x, y).length > 0) victory = false;
+            if (getMoves(x, y).length > 0) end = false;
         }
     }
     state.scoreBlack = black;
     state.scoreWhite = white;
     updateScoreBoard();
     renderBoard();
-    setTimeout(function () {
-        if (victory) {
-            if (white > black)
-                alert("White wins " + white + " to " + black + " !!!");
-            if (white < black)
-                alert("Black wins " + black + " to " + white + " !!!");
-            if (white == black)
-                alert("It a draw!!!");
-            state = {
-                over: false,
-                turn: 'b',
-                board: [
-                    [null, null, null, null, null, null, null, null],
-                    [null, null, null, null, null, null, null, null],
-                    [null, null, null, null, null, null, null, null],
-                    [null, null, null, "w", "b", null, null, null],
-                    [null, null, null, "b", "w", null, null, null],
-                    [null, null, null, null, null, null, null, null],
-                    [null, null, null, null, null, null, null, null],
-                    [null, null, null, null, null, null, null, null]
-                ],
-                lastMousePosition: {x: -1, y: -1},
-                scoreWhite: 2,
-                scoreBlack: 2
-            };
-            updateScoreBoard();
-            renderBoard();
-        }
-    }, 100);
+    if (!checkNext)
+        setTimeout(function () {
+            if (end) {
+                if (white > black)
+                    alert("White wins " + white + " to " + black + " !!!");
+                if (white < black)
+                    alert("Black wins " + black + " to " + white + " !!!");
+                if (white == black)
+                    alert("It a draw!!!");
+                state = {
+                    over: false,
+                    turn: 'b',
+                    board: [
+                        [null, null, null, null, null, null, null, null],
+                        [null, null, null, null, null, null, null, null],
+                        [null, null, null, null, null, null, null, null],
+                        [null, null, null, "w", "b", null, null, null],
+                        [null, null, null, "b", "w", null, null, null],
+                        [null, null, null, null, null, null, null, null],
+                        [null, null, null, null, null, null, null, null],
+                        [null, null, null, null, null, null, null, null]
+                    ],
+                    lastMousePosition: {x: -1, y: -1},
+                    scoreWhite: 2,
+                    scoreBlack: 2
+                };
+                updateScoreBoard();
+                renderBoard();
+            }
+        }, 100);
 
-    return victory;
+    return end;
 
 }
 
@@ -219,7 +220,10 @@ function handleClick(event) {
             applyMove(x, y, move.dir, move.length);
         });
         nextTurn();
-        checkForVictory();
+        if(checkForEnd(true)){
+            nextTurn();
+            checkForEnd(false)
+        }
         renderBoard();
     }
 }
